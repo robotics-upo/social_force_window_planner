@@ -267,6 +267,7 @@ bool SFWPlanner::findBestAction(geometry_msgs::PoseStamped &global_pose,
   if (new_plan_) {
     new_plan_ = false;
     double dist_sq;
+    double min_dist = 9999.0;
     wp_index_ = 0;
     for (int i = global_plan_.size() - 1; i >= 0; i--) {
       double wpx = global_plan_[i].pose.position.x;
@@ -276,6 +277,10 @@ bool SFWPlanner::findBestAction(geometry_msgs::PoseStamped &global_pose,
       if (dist_sq < (wp_tolerance_ * wp_tolerance_)) {
         wp_index_ = i;
         break;
+      } else if (dist_sq < min_dist) { // find the closest point if none can be
+                                       // found closer in wp_tolerance_ range
+        min_dist = dist_sq;
+        wp_index_ = i;
       }
     }
   }
@@ -609,6 +614,8 @@ double SFWPlanner::scoreTrajectory(double x, double y, double theta, double vx,
   ang_diff = fabs(ang_diff) / M_PI;
   // compute diff with max vel
   double vel_diff = fabs(max_vel_x_ - vx_i) / max_vel_x_;
+  // average costmap cost
+  costmap_cost = costmap_cost / num_steps;
 
   // DWA cost function:
   // total_cost = path_distance_bias_ * path_cost + goal_distance_bias_ *

@@ -78,4 +78,4 @@ The package is a **work in progress** used in research prototyping. Pull request
 
 - [ ] Improve the approximation to a final goal.
 - [ ] Larger *sim_time* and *wp_tolerance* gives more "social" freedom to the planner but it presents problems to overcome some corners and narrow passages. We must try to fix this or to find a good balance. 
-- [ ] Fix the computation of the robot local goal in the path in case the robot moves farther than *wp_tolerance* distance.
+- [X] Fix the computation of the robot local goal in the path in case the robot moves farther than *wp_tolerance* distance.
