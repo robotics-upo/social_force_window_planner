@@ -1,0 +1,63 @@
+<package>
+    <name>social_force_window_planner</name>
+    <version>1.0.0</version>
+    <description>
+
+        Given a plan to follow and a costmap, this controller produces velocity commands to send to a mobile base. This package supports non-holonomic robots, any robot footprint that can be represented as a convex polygon or circle, and exposes its configuration as ROS parameters that can be set in a launch file. This package's ROS wrapper adheres to the BaseLocalPlanner interface specified in the <a href="http://wiki.ros.org/nav_core">nav_core</a> package. 
+
+    </description>
+    <author>Noé Pérez</author>
+    <maintainer email="noe.perez@pal-robotics.com">Noé Pérez</maintainer>
+    <license>Propietary</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <build_depend>cmake_modules</build_depend>
+    <!--<build_depend>message_generation</build_depend>-->
+    <build_depend>tf2_geometry_msgs</build_depend>
+    <build_depend>angles</build_depend>
+    <build_depend>costmap_2d</build_depend>
+    <build_depend>dynamic_reconfigure</build_depend>
+    <build_depend>eigen</build_depend>
+    <build_depend>geometry_msgs</build_depend>
+    <build_depend>nav_core</build_depend>
+    <build_depend>nav_msgs</build_depend>
+    <build_depend>pluginlib</build_depend>
+    <build_depend>sensor_msgs</build_depend>
+    <build_depend>std_msgs</build_depend>
+    <build_depend>rosconsole</build_depend>
+    <build_depend>roscpp</build_depend>
+    <build_depend>tf2</build_depend>
+    <build_depend>tf2_ros</build_depend>
+    <build_depend>visualization_msgs</build_depend>
+    <build_depend>lightsfm</build_depend>
+    <build_depend>dynamic_obstacle_detector</build_depend>
+
+	<!--<build_export_depend>costmap_2d</build_export_depend>
+	<build_export_depend>nav_core</build_export_depend>
+	<build_export_depend>roscpp</build_export_depend>-->
+
+    <!--<exec_depend>message_runtime</exec_depend>-->
+    <run_depend>tf2_geometry_msgs</run_depend>
+    <run_depend>angles</run_depend>
+    <run_depend>costmap_2d</run_depend>
+    <run_depend>dynamic_reconfigure</run_depend>
+    <run_depend>eigen</run_depend>
+    <run_depend>geometry_msgs</run_depend>
+    <run_depend>nav_core</run_depend>
+    <run_depend>nav_msgs</run_depend>
+    <run_depend>pluginlib</run_depend>
+    <run_depend>sensor_msgs</run_depend>
+    <run_depend>std_msgs</run_depend>
+    <run_depend>rosconsole</run_depend>
+    <run_depend>roscpp</run_depend>
+    <run_depend>tf2</run_depend>
+    <run_depend>tf2_ros</run_depend>
+    <run_depend>visualization_msgs</run_depend>
+    <run_depend>lightsfm</run_depend>
+    <run_depend>dynamic_obstacle_detector</run_depend>
+
+    <export>
+        <nav_core plugin="${prefix}/sfw_plugin.xml" />
+    </export>
+</package>

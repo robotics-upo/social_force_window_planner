@@ -1,0 +1,38 @@
+base_local_planner: social_force_window_planner/SFWPlannerROS
+
+
+SFWPlannerROS:
+
+  max_trans_vel:        1.0
+  min_trans_vel:        0.08
+  max_rot_vel:          !degrees 60.0
+  min_rot_vel:          !degrees 30.0
+  max_trans_acc:        0.15
+  max_rot_acc:          !degrees 30.0
+  min_in_place_rot_vel: !degrees 40.0
+  yaw_goal_tolerance:   0.2
+  xy_goal_tolerance:    0.2
+  wp_tolerance:         1.0
+  sim_time:             1.0
+  sim_granularity:      0.025
+  
+  #sensor interface params
+  laser_topic:          scan_raw
+  #people_topic:      
+  dyn_obs_topic:        dynamic_obstacles
+  odom_topic:           mobile_base_controller/odom
+  max_obstacle_dist:    3.0
+  naive_goal_time:      1.0
+  people_velocity:      1.9
+  
+  # sfm params
+  sfm_goal_weight:      1.0
+  sfm_obstacle_weight:  12.0
+  sfm_people_weight:    8.0
+
+  # cost function weights
+  social_weight:        1.2
+  costmap_weight:       2.0
+  angle_weight:         0.7
+  distance_weight:      1.0
+ 
