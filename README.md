@@ -9,7 +9,7 @@ Besides the basic scoring function to follow the global path, a new social cost 
 
 With:
 
-- <img src="https://render.githubusercontent.com/render/math?math=W_{r}+"> The summatory of the modulus of the social force and the obstacle force along the trajectory. According to the SFM.
+- <img src="https://render.githubusercontent.com/render/math?math=W_{r}+"> The summatory of the modulus of the robot social force and the robot obstacle force along the trajectory. According to the SFM.
 - <img src="https://render.githubusercontent.com/render/math?math=W_{p}+"> The summatory of the modulus of the social forces provoked by the robot for each close pedestrian along the trajectory. According to the SFM.
 
 This local planner has been programmed as a BaseLocalPlanner plugin. So it can be used in the ROS *move_base* architecture. The possible collisions are checked based on the ROS local costmap and the projected people positions.
@@ -78,4 +78,4 @@ The package is a **work in progress** used in research prototyping. Pull request
 
 - [ ] Improve the approximation to a final goal.
 - [ ] Larger *sim_time* and *wp_tolerance* gives more "social" freedom to the planner but it presents problems to overcome some corners and narrow passages. We must try to fix this or to find a good balance. 
-- [ ] Fix the computation of the robot local goal in the path in case the robot moves away farther than *wp_tolerance* distance.
+- [ ] Fix the computation of the robot local goal in the path in case the robot moves farther than *wp_tolerance* distance.
