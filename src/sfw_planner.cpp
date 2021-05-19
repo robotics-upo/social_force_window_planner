@@ -307,7 +307,7 @@ bool SFWPlanner::findBestAction(geometry_msgs::PoseStamped &global_pose,
   double dt = atan2(dy, dx);
 
   // If we are approaching the goal (< dist_thres meters)
-  double dist_thres = 1.0;
+  double dist_thres = 1.5;
   if (dist_goal_sq < (dist_thres * dist_thres)) {
     vx = min_vel_x_ +
          (max_vel_x_ - min_vel_x_) * sqrt(dist_goal_sq) / dist_thres;
@@ -602,6 +602,13 @@ double SFWPlanner::scoreTrajectory(double x, double y, double theta, double vx,
     time += dt;
   } // end for i < numsteps
 
+  // Check whether the robot could stop without colliding
+  // if (!mayIStop(vx_i, vy_i, vtheta_i, x_i, y_i, theta_i, dt)) {
+  //  traj.cost_ = -1.0;
+  //  return -1.0;
+  //}
+
+  // Compute scoring function values:
   double dx = wpx - x_i;
   double dy = wpy - y_i;
   // Distance to goal
@@ -666,6 +673,55 @@ double SFWPlanner::footprintCost(double x_i, double y_i, double theta_i) {
   // check if the footprint is legal
   return world_model_.footprintCost(x_i, y_i, theta_i, footprint_spec_,
                                     inscribed_radius_, circumscribed_radius_);
+}
+
+// We check that we can stop without colliding
+bool SFWPlanner::mayIStop(double vl_x, double vl_y, double va, double x,
+                          double y, double th, double dt) {
+  double lvx = vl_x;
+  double lvy = vl_y;
+  double av = va;
+  double xp = x;
+  double yp = y;
+  double hp = th;
+  int steps = 0;
+  float ldist = 0.0;
+  // std::printf("MayIstop: initial velx: %.2f, vely: %.2f\n", vl_x, vl_y);
+  while (lvx > 0.0 || lvy > 0.0) {
+    lvx = computeNewVelocity(0.0, lvx, acc_lim_trans_, dt);
+    lvy = computeNewVelocity(0.0, lvy, acc_lim_trans_, dt);
+    av = computeNewVelocity(0.0, av, acc_lim_rot_, dt);
+
+    xp = computeNewXPosition(xp, lvx, lvy, av, dt);
+    yp = computeNewYPosition(yp, lvx, lvy, av, dt);
+    hp = computeNewThetaPosition(hp, av, dt);
+
+    // std::printf("MayIStop. step:%i, clvx: %.2f, clvy: %.2f, x: %.2f y:
+    // %.2f\n",
+    //            steps, lvx, lvy, xp, yp);
+
+    // float lin_dist = lv * dt;
+    // ldist += lin_dist;
+    /*hp = hp + (av * dt);
+    // normalization just in case
+    hp = normalizeAngle(hp, -M_PI, M_PI);
+    xp = xp + lin_dist * cos(hp); // cos(th+av*dt/2.0)
+    yp = yp + lin_dist * sin(hp);
+    */
+    double footprint_cost = footprintCost(xp, yp, hp);
+
+    steps++;
+
+    if (footprint_cost < 0 || footprint_cost >= 254.0) {
+      std::printf("MayIStop. COLLISION steps: %i\n", steps);
+      return false;
+    }
+  }
+  // std::printf("\n");
+  // std::printf("MayIStop. ilvx: %.2f, ilvy: %.2f steps: %i, dist: %.3f\n",
+  // lvx,
+  //            lvy, steps, ldist);
+  return true;
 }
 
 // calculate the cost of a ray-traced line

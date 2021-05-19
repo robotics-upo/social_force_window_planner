@@ -14,7 +14,7 @@ SFWPlannerROS:
   xy_goal_tolerance:    0.2
   wp_tolerance:         1.0
   sim_time:             1.0
-  sim_granularity:      0.025
+  sim_granularity:      0.25
   
   #sensor interface params
   laser_topic:          scan_raw

@@ -72,8 +72,6 @@ public:
    * @param sim_time The maximum number of seconds to expand the movement
    * @param sim_granularity The distance between simulation points should be
    * small enough that the robot doesn't hit things
-   * @param angular_sim_granularity The distance between simulation points for
-   * angular velocity should be small enough that the robot doesn't hit things
    * @param people_radius radius of the approximated circunference of the
    * people's footprint
    * @param robot_radius radius of the approximated circunference of the robot
@@ -207,7 +205,20 @@ private:
    */
   double footprintCost(double x_i, double y_i, double theta_i);
 
-  // boost::mutex configuration_mutex_;
+  /**
+   * @brief  Compute if the robot can stop without colliding
+   * @param vl_x The current linear velocity in x axis
+   * @param vl_y The current linear velocity in y axis
+   * @param va The current angular velocity
+   * @param x The current position in x axis
+   * @param y The current position in y axis
+   * @param th The current heading
+   * @param  dt The timestep to take
+   * @return True if stopping is possible, False if possible collision
+   */
+  bool mayIStop(double vl_x, double vl_y, double va, double x, double y,
+                double th, double dt);
+
   std::mutex configuration_mutex_;
 
   const costmap_2d::Costmap2D &costmap_; ///< @brief Provides access to cost map
