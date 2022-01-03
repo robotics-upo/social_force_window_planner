@@ -141,8 +141,8 @@ SFWPlanner::SFWPlanner(
   for (unsigned int i = 1; i <= n_angvels_; i++) {
     angvels_.push_back(i * angvel_step);
     angvels_.push_back(i * (-angvel_step));
-    std::printf("%.2f, ", (i * linvel_step));
-    std::printf("%.2f, ", (i * (-linvel_step)));
+    std::printf("%.2f, ", (i * angvel_step));
+    std::printf("%.2f, ", (i * (-angvel_step)));
   }
   std::printf("]\n");
   initializeMarkers();
@@ -623,6 +623,8 @@ double SFWPlanner::scoreTrajectory(double x, double y, double theta, double vx,
   double vel_diff = fabs(max_vel_x_ - vx_i) / max_vel_x_;
   // average costmap cost
   costmap_cost = costmap_cost / num_steps;
+
+  // printf("costmap_cost: %.2f\n", costmap_cost);
 
   // DWA cost function:
   // total_cost = path_distance_bias_ * path_cost + goal_distance_bias_ *
