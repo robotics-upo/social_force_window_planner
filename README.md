@@ -5,7 +5,7 @@ This planner projects a set of possible trajectories in a small lookahead time (
 
 Besides the basic scoring function to follow the global path, a new social cost has been added. It is based on the concept of the "**social work**" performed by the robot ($W_{r}$), and the social work provoked by the robot in the surrounding pedestrians ($W_{p}$)
 
-$$ W_{r} \sum W_{p_{i}} $$
+$$ W_{social} = W_{r} + \sum W_{p_{i}} $$
 
 With:
 
@@ -57,7 +57,8 @@ Cost function for trajectory scoring:
 
 $$ C_{traj} = C_{s} * \omega_{s} + C_{cm} * \omega_{cm} + C_{a} * \omega_{a} + C_{v} * \omega_{v} + C_{d} * \omega_{d} $$
 
-	With:
+
+With:
 
   - *social_weight* $\omega_{s}$. The weight given to the "social-work" term. ($W_{social}$)
   - *costmap_weight* $\omega_{cm}$. The weight given to the normalized "non-lethal" costmap value.
