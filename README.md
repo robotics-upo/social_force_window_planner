@@ -55,15 +55,15 @@ An example yaml file with the set of parameters is provided in config/local_plan
 * **Trajectory-scoring Function Parameters** 
 Cost function for trajectory scoring:
 
-	$$ C_{s} * \omega_{s} \; C_{cm} * \omega_{cm} \; C_{a} * \omega_{a} \; C_{v} * \omega_{v} \; C_{d} * \omega_{d} $$
+$$ C_{traj} = C_{s} * \omega_{s} + C_{cm} * \omega_{cm} + C_{a} * \omega_{a} + C_{v} * \omega_{v} + C_{d} * \omega_{d} $$
 
 	With:
 
-  - *social_weight $\omega_{s}$. The weight given to the "social-work" term. ($W_{social}$)
-  - *costmap_weight $\omega_{cm}$. The weight given to the normalized "non-lethal" costmap value.
-  - *angle_weight $\omega_{a}$. The weight given to the angle difference between the robot heading and the path heading.
-  - *vel_weight $\omega_{v}$. The weight given to the difference between the linear maximum velocity allowed and the linear velocity evaluated.
-  - *distance_weight $\omega_{d}$. The weight given to the distance between the final point of the projected robot trajectory and the current local goal.
+  - *social_weight* $\omega_{s}$. The weight given to the "social-work" term. ($W_{social}$)
+  - *costmap_weight* $\omega_{cm}$. The weight given to the normalized "non-lethal" costmap value.
+  - *angle_weight* $\omega_{a}$. The weight given to the angle difference between the robot heading and the path heading.
+  - *vel_weight* $\omega_{v}$. The weight given to the difference between the linear maximum velocity allowed and the linear velocity evaluated.
+  - *distance_weight* $\omega_{d}$. The weight given to the distance between the final point of the projected robot trajectory and the current local goal.
 
 ## Dependencies
 
