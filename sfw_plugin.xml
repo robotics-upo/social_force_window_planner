@@ -1,7 +1,9 @@
-<library path="lib/libsfw_planner_ros">
-    <class name="social_force_window_planner/SFWPlannerROS" type="sfw_planner::SFWPlannerROS" base_class_type="nav_core::BaseLocalPlanner">
-    <description>
-      A implementation of a simple local controller to follow a pre-defined path.
-    </description>
-  </class>
-</library>
+<class_libraries>
+    <library path="social_force_window_planner">
+        <class type="social_force_window_planner::SFWPlannerNode" base_class_type="nav2_core::Controller">
+            <description>
+                social_force_window_planner
+            </description>
+        </class>
+    </library>
+</class_libraries>

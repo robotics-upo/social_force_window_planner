@@ -1,0 +1,43 @@
+# Social Force Window Planner
+    FollowPath:
+      plugin: "social_force_window_planner::SFWPlannerNode"
+      controller_frame: odom
+      robot_base_frame: base_footprint
+
+      max_trans_vel:        1.0
+      min_trans_vel:        0.08
+      max_rot_vel:          1.57 
+      min_rot_vel:          0.52 
+      max_trans_acc:        0.15
+      max_rot_acc:          0.52 
+      min_in_place_rot_vel: 0.7 
+      yaw_goal_tolerance:   0.2
+      xy_goal_tolerance:    0.2
+      wp_tolerance:         1.0
+      sim_time:             1.5 
+      sim_granularity:      0.25
+      robot_radius:         0.4
+      people_radius:        0.35
+      is_circular:          true
+      
+      # sfm params
+      sfm_goal_weight:      1.0
+      sfm_obstacle_weight:  15.0
+      sfm_people_weight:    8.0
+
+      # cost function weights
+      social_weight:        3.0 
+      costmap_weight:       2.0
+      vel_weight:           0.7 
+      angle_weight:         0.7 
+      distance_weight:      1.0
+
+      #sensor interface params
+      sensor_interface:
+        laser_topic:        base_laser/scan_raw
+        people_topic:       people 
+        odom_topic:         odom
+        max_obstacle_dist:  3.0
+        naive_goal_time:    1.0
+        people_velocity:    1.9
+ 

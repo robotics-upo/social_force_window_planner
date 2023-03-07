@@ -1,104 +1,119 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(social_force_window_planner)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-std=c++11)
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+endif()
 
-find_package(catkin REQUIRED
-        COMPONENTS
-            cmake_modules
-            roscpp
-            dynamic_reconfigure
-            nav_core
-            nav_msgs
-            costmap_2d
-            geometry_msgs
-            pluginlib
-            tf2
-            tf2_geometry_msgs
-            tf2_ros
-            angles
-            dynamic_obstacle_detector
-        )
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+endif()
 
+#set(CMAKE_INCLUDE_CURRENT_DIR ON)
+#set(CMAKE_AUTOMOC ON)
+
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(nav2_common REQUIRED)
+find_package(nav2_core REQUIRED)
+find_package(nav2_costmap_2d REQUIRED)
+find_package(nav2_util REQUIRED)
+find_package(nav2_msgs REQUIRED)
+find_package(people_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(angles REQUIRED)
 find_package(Eigen3 REQUIRED)
-
-#PAL
-include_directories(include)
-include_directories(SYSTEM
-    /usr/local/include  #to find lightsfm
-    ${catkin_INCLUDE_DIRS}
-    ${EIGEN3_INCLUDE_DIRS}
-)
-add_definitions(${EIGEN3_DEFINITIONS})
+find_package(pluginlib REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(message_filters REQUIRED)
 
 
+nav2_package()
 
-# dynamic reconfigure
-generate_dynamic_reconfigure_options(
-    cfg/SFWPlanner.cfg
-)
 
-catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES
-        sfw_planner
-        sfw_planner_ros
-    CATKIN_DEPENDS
-        roscpp
-        dynamic_reconfigure
-        geometry_msgs
-        pluginlib
-        costmap_2d
-        nav_core
-        nav_msgs
-        angles
-        tf2
-        tf2_ros
-        lightsfm
+include_directories(
+    /usr/local/include  #to find lightsfm, just in case
+    include
 )
 
-#uncomment for profiling
-#set(ROS_COMPILE_FLAGS "-g -pg" ${ROS_COMPILE_FLAGS})
-#set(ROS_LINK_FLAGS "-g -pg" ${ROS_LINK_FLAGS})
-#set(ROS_COMPILE_FLAGS "-g" ${ROS_COMPILE_FLAGS})
-#set(ROS_LINK_FLAGS "-g" ${ROS_LINK_FLAGS})
+set(dependencies
+  nav2_core
+  tf2_ros
+  angles
+  rclcpp
+  geometry_msgs
+  people_msgs
+  nav2_costmap_2d
+  pluginlib
+  nav2_msgs
+  nav2_util
+  nav2_core
+  tf2
+  tf2_geometry_msgs
+  message_filters
+)
 
-add_library(sfw_planner
-	src/goal_functions.cpp
-	src/odometry_helper_ros.cpp
-	src/costmap_model.cpp
-	src/trajectory.cpp
- )
-add_dependencies(sfw_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} sfw_planner_gencfg)
-target_link_libraries(sfw_planner
-    ${catkin_LIBRARIES}
-    ${Eigen_LIBRARIES}
-    )
+# The lines below will deal with differences between ROS distributions:
+if(TARGET tf2_geometry_msgs::tf2_geometry_msgs)
+  get_target_property(_include_dirs tf2_geometry_msgs::tf2_geometry_msgs INTERFACE_INCLUDE_DIRECTORIES)
+else()
+  set(_include_dirs ${tf2_geometry_msgs_INCLUDE_DIRS})
+endif()
 
-add_library(sfw_planner_ros
+find_file(TF2_CPP_HEADERS
+  NAMES tf2_geometry_msgs.hpp
+  PATHS ${_include_dirs}
+  NO_CACHE
+  PATH_SUFFIXES tf2_geometry_msgs
+)
+
+
+
+set(library_name ${PROJECT_NAME})
+
+add_library(${library_name} SHARED
+    src/costmap_model.cpp
+    #src/goal_functions.cpp
+    #src/odometry_helper_ros.cpp
     src/sensor_interface.cpp
-	src/sfw_planner.cpp
-	src/sfw_planner_ros.cpp)
-
-target_link_libraries(sfw_planner_ros
-     sfw_planner)
-
-
-install(TARGETS
-            sfw_planner
-            sfw_planner_ros
-       ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-       LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-       )
-
-install(FILES sfw_plugin.xml
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+    src/sfw_planner_node.cpp
+    src/sfw_planner.cpp
+    src/trajectory.cpp
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  PATTERN ".svn" EXCLUDE
+# prevent pluginlib from using boost
+target_compile_definitions(${library_name} PUBLIC "PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
+ament_target_dependencies(${library_name}
+  ${dependencies}
 )
+if(EXISTS ${TF2_CPP_HEADERS})
+  target_compile_definitions(${library_name} PUBLIC -DTF2_CPP_HEADERS)
+endif()
+
+
+
+install(TARGETS ${library_name}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY include/
+DESTINATION include)
+
+
+ament_export_include_directories(include)
+ament_export_libraries(${library_name})
+ament_export_dependencies(${dependencies})
+ament_export_definitions("PLUGINLIB__DISABLE_BOOST_FUNCTIONS")
+
+pluginlib_export_plugin_description_file(nav2_core sfw_plugin.xml)
+
+ament_package()
 
 

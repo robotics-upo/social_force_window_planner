@@ -1,16 +1,20 @@
-/*********************************************************************
- *
+/**
+ * Social Force Window Planner
  *
  * Author: Noé Pérez-Higueras
- *********************************************************************/
-#ifndef SFW_COSTMAP_MODEL_
-#define SFW_COSTMAP_MODEL_
+ * Service Robotics Lab, Pablo de Olavide University 2022
+ *
+ * Software License Agreement (MIT License)
+ *
+ */
+#ifndef SFW_COSTMAP_MODEL_HPP_
+#define SFW_COSTMAP_MODEL_HPP_
 
-#include <social_force_window_planner/world_model.h>
+#include <social_force_window_planner/world_model.hpp>
 // For obstacle data access
-#include <costmap_2d/costmap_2d.h>
+#include <nav2_costmap_2d/costmap_2d.hpp>
 
-namespace sfw_planner {
+namespace social_force_window_planner {
 /**
  * @class CostmapModel
  * @brief A class that implements the WorldModel interface to provide grid
@@ -23,7 +27,7 @@ public:
    * @param costmap The costmap that should be used
    * @return
    */
-  CostmapModel(const costmap_2d::Costmap2D &costmap);
+  CostmapModel(const nav2_costmap_2d::Costmap2D &costmap);
 
   /**
    * @brief  Destructor for the world model
@@ -46,9 +50,9 @@ public:
    * [partially] outside of the map
    */
   virtual double
-  footprintCost(const geometry_msgs::Point &position,
-                const std::vector<geometry_msgs::Point> &footprint,
-                double inscribed_radius, double circumscribed_radius);
+  footprintCost(const geometry_msgs::msg::Point &position,
+                const std::vector<geometry_msgs::msg::Point> &footprint); //,
+  // double inscribed_radius, double circumscribed_radius);
 
   /**
    * @brief  Rasterizes a line in the costmap grid and checks for collisions
@@ -69,8 +73,8 @@ public:
   double pointCost(int x, int y) const;
 
 private:
-  const costmap_2d::Costmap2D
+  const nav2_costmap_2d::Costmap2D
       &costmap_; ///< @brief Allows access of costmap obstacle information
 };
-}; // namespace sfw_planner
+} // namespace social_force_window_planner
 #endif
