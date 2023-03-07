@@ -3,14 +3,14 @@ A local controller based on Dinamic Window Approach (DWA) and Social Force Model
 
 This planner projects a set of possible trajectories in a small lookahead time (*sim_time* parameter). Then, the SFM is employed as a predictor of the future state of the surrounding people along the trajectories.
 
-Besides the basic scoring function to follow the global path, a new social cost has been added. It is based on the concept of the "**social work**" performed by the robot ($W_{r}$), and the social work provoked by the robot in the surrounding pedestrians (<img src="https://render.githubusercontent.com/render/math?math=W_{p}">)
+Besides the basic scoring function to follow the global path, a new social cost has been added. It is based on the concept of the "**social work**" performed by the robot ($W_{r}$), and the social work provoked by the robot in the surrounding pedestrians ($W_{p}$)
 
-<img src="https://render.githubusercontent.com/render/math?math=W_{social} = W_{r} %2B \sum W_{p_{i}}">
+$$ W_{r} \sum W_{p_{i}} $$
 
 With:
 
-- <img src="https://render.githubusercontent.com/render/math?math=W_{r}+"> The summatory of the modulus of the robot social force and the robot obstacle force along the trajectory. According to the SFM.
-- <img src="https://render.githubusercontent.com/render/math?math=W_{p}+"> The summatory of the modulus of the social forces provoked by the robot for each close pedestrian along the trajectory. According to the SFM.
+- $W_{r}$  The summatory of the modulus of the robot social force and the robot obstacle force along the trajectory. According to the SFM.
+- $W_{p}$  The summatory of the modulus of the social forces provoked by the robot for each close pedestrian along the trajectory. According to the SFM.
 
 This local planner has been programmed as a Controller plugin under ROS2 distro foxy. So it can be used in the ROS2 *nav2* architecture. The possible collisions are checked based on the ROS local costmap and the projected people positions.
 
@@ -55,15 +55,15 @@ An example yaml file with the set of parameters is provided in config/local_plan
 * **Trajectory-scoring Function Parameters** 
 Cost function for trajectory scoring:
 
-	<img src="https://render.githubusercontent.com/render/math?math=C_{traj} = C_{s} * \omega_{s} %2B C_{cm} * \omega_{cm} %2B C_{a} * \omega_{a} %2B C_{v} * \omega_{v} %2B C_{d} * \omega_{d}">
+	$$ C_{s} * \omega_{s} \; C_{cm} * \omega_{cm} \; C_{a} * \omega_{a} \; C_{v} * \omega_{v} \; C_{d} * \omega_{d} $$
 
 	With:
 
-  - *social_weight <img src="https://render.githubusercontent.com/render/math?math=\omega_{s}">*. The weight given to the "social-work" term. (<img src="https://render.githubusercontent.com/render/math?math=C_{s} = W_{social}">)
-  - *costmap_weight <img src="https://render.githubusercontent.com/render/math?math=\omega_{cm}">*. The weight given to the normalized "non-lethal" costmap value.
-  - *angle_weight <img src="https://render.githubusercontent.com/render/math?math=\omega_{a}">*. The weight given to the angle difference between the robot heading and the path heading.
-  - *vel_weight <img src="https://render.githubusercontent.com/render/math?math=\omega_{v}">*. The weight given to the difference between the linear maximum velocity allowed and the linear velocity evaluated.
-  - *distance_weight <img src="https://render.githubusercontent.com/render/math?math=\omega_{d}">*. The weight given to the distance between the final point of the projected robot trajectory and the current local goal.
+  - *social_weight $\omega_{s}$. The weight given to the "social-work" term. ($W_{social}$)
+  - *costmap_weight $\omega_{cm}$. The weight given to the normalized "non-lethal" costmap value.
+  - *angle_weight $\omega_{a}$. The weight given to the angle difference between the robot heading and the path heading.
+  - *vel_weight $\omega_{v}$. The weight given to the difference between the linear maximum velocity allowed and the linear velocity evaluated.
+  - *distance_weight $\omega_{d}$. The weight given to the distance between the final point of the projected robot trajectory and the current local goal.
 
 ## Dependencies
 
