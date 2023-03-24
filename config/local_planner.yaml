@@ -4,7 +4,7 @@
       controller_frame: odom
       robot_base_frame: base_footprint
 
-      max_trans_vel:        1.0
+      max_trans_vel:        0.8 
       min_trans_vel:        0.08
       max_rot_vel:          1.57 
       min_rot_vel:          0.52 
@@ -26,7 +26,7 @@
       sfm_people_weight:    8.0
 
       # cost function weights
-      social_weight:        3.0 
+      social_weight:        2.0 
       costmap_weight:       2.0
       vel_weight:           0.7 
       angle_weight:         0.7 
@@ -36,8 +36,8 @@
       sensor_interface:
         laser_topic:        base_laser/scan_raw
         people_topic:       people 
+        #dyn_obs_topic:     dynamic_obstacles
         odom_topic:         odom
         max_obstacle_dist:  3.0
         naive_goal_time:    1.0
         people_velocity:    1.9
- 
