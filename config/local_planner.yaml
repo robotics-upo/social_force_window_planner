@@ -28,8 +28,8 @@
       # cost function weights
       social_weight:        2.0 
       costmap_weight:       2.0
-      vel_weight:           0.7 
-      angle_weight:         0.7 
+      velocity_weight:      0.8 
+      angle_weight:         0.6 
       distance_weight:      1.0
 
       #sensor interface params
@@ -40,4 +40,4 @@
         odom_topic:         odom
         max_obstacle_dist:  3.0
         naive_goal_time:    1.0
-        people_velocity:    1.9
+        people_velocity:    1.7
