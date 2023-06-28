@@ -100,7 +100,7 @@ void SFWPlanner::initializeMarkers() {
       markers_.markers[counter].id = counter;
       markers_.markers[counter].type = 4;
       markers_.markers[counter].action = 0; // 0 - add/modify an object
-      markers_.markers[counter].lifetime = rclcpp::Duration(0.3);
+      markers_.markers[counter].lifetime = rclcpp::Duration::from_seconds(0.3);
       markers_.markers[counter].scale.x = 0.01;
       markers_.markers[counter].color.a = 1.0;
       markers_.markers[counter].pose.orientation.w = 1.0;

@@ -20,6 +20,7 @@
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 
 #include "nav2_core/controller.hpp"
+#include "nav2_core/goal_checker.hpp"
 #include "nav2_core/exceptions.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/node_utils.hpp"
@@ -71,9 +72,9 @@ public:
    * @param costmap_ros Costmap2DROS object of environment
    */
   void
-  configure(const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
-            const std::string name, const std::shared_ptr<tf2_ros::Buffer> &tf,
-            const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &costmap_ros)
+  configure(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
+            const std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
+            const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros)
       override;
 
   /**
@@ -107,13 +108,21 @@ public:
    */
   geometry_msgs::msg::TwistStamped
   computeVelocityCommands(const geometry_msgs::msg::PoseStamped &pose,
-                          const geometry_msgs::msg::Twist &velocity) override;
+                          const geometry_msgs::msg::Twist &velocity,
+                          nav2_core::GoalChecker * goal_checker) override;
 
   /**
    * @brief nav2_core setPlan - Sets the global plan
    * @param path The global plan
    */
   void setPlan(const nav_msgs::msg::Path &path) override;
+
+ /**
+    * @brief Set new speed limit from callback
+    * @param speed_limit Speed limit to use
+    * @param percentage Bool if the speed limit is absolute or relative
+    */
+  void setSpeedLimit(const double & speed_limit, const bool & percentage) override;
 
 protected:
   /**
@@ -151,7 +160,7 @@ protected:
 
   bool isGoalReached();
 
-  rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
+  rclcpp_lifecycle::LifecycleNode::WeakPtr node_;
   std::string name_;
   std::shared_ptr<tf2_ros::Buffer> tf_;
   std::string plugin_name_;
