@@ -14,6 +14,11 @@ With:
 
 This local planner has been programmed as a Controller plugin under ROS2 distro foxy. So it can be used in the ROS2 *nav2* architecture. The possible collisions are checked based on the ROS local costmap and the projected people positions.
 
+## Acknowledgment
+This publication has been financed by the European Regional Development Fund (FEDER) and by the Ministry of Economy, Knowledge, Business and University, of the Government of Andalucía , within the framework of the FEDER Andalucía 2014-2020 operational program. Specific objective 1.2.3. "Promotion and generation of frontier knowledge and knowledge oriented to the challenges of society, development of emerging technologies" within the framework of the reference research project UPO-1264631.
+FEDER co-financing percentage 80%
+
+
 ## Parameters
 
 An example yaml file with the set of parameters is provided in config/local_planner.yaml
