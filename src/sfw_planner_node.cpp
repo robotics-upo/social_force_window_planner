@@ -45,12 +45,13 @@ Iter min_by(Iter begin, Iter end, Getter getCompareVal) {
 }
 
 void SFWPlannerNode::configure(
-    const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
-    const std::string name, const std::shared_ptr<tf2_ros::Buffer> &tf,
-    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &costmap_ros) {
+    const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
+    const std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
+    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) {
 
-  logger_ = parent->get_logger();
   node_ = parent;
+  auto node = node_.lock();
+
   name_ = name;
 
   RCLCPP_INFO(logger_,
@@ -63,19 +64,19 @@ void SFWPlannerNode::configure(
   tf_ = tf;
 
   // sensor interface
-  sensor_iface_ = std::make_shared<SFMSensorInterface>(parent, tf, name);
+  sensor_iface_ = std::make_shared<SFMSensorInterface>(node, tf, name);
 
   global_path_pub_ =
-      parent->create_publisher<nav_msgs::msg::Path>("robot_global_plan", 1);
+      node->create_publisher<nav_msgs::msg::Path>("robot_global_plan", 1);
 
   local_path_pub_ =
-      parent->create_publisher<nav_msgs::msg::Path>("robot_local_plan", 1);
+      node->create_publisher<nav_msgs::msg::Path>("robot_local_plan", 1);
 
-  traj_pub_ = parent->create_publisher<visualization_msgs::msg::MarkerArray>(
+  traj_pub_ = node->create_publisher<visualization_msgs::msg::MarkerArray>(
       "robot_local_trajectories", 1);
 
   sfw_planner_ =
-      std::make_shared<SFWPlanner>(parent, name, sensor_iface_, *costmap_,
+      std::make_shared<SFWPlanner>(node, name, sensor_iface_, *costmap_,
                                    costmap_ros_->getRobotFootprint());
 }
 
@@ -219,8 +220,10 @@ bool SFWPlannerNode::transformPoint(
 
 geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
     const geometry_msgs::msg::PoseStamped &pose,
-    const geometry_msgs::msg::Twist &speed) {
+    const geometry_msgs::msg::Twist &speed,
+    nav2_core::GoalChecker * goal_checker) {
 
+  auto node = node_.lock();
   // RCLCPP_INFO(logger_, "ComputeVelocityCommands called!!!!");
   geometry_msgs::msg::TwistStamped velStamp;
   sensor_iface_->start();
@@ -235,6 +238,13 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
   if (!transformPose(costmap_ros_->getGlobalFrameID(), pose, robot_pose)) {
     throw nav2_core::PlannerException(
         "Unable to transform robot pose into costmap's frame");
+  }
+
+  // Update for the current goal checker's state
+  geometry_msgs::msg::Pose pose_tolerance;
+  geometry_msgs::msg::Twist vel_tolerance;
+  if (!goal_checker->getTolerances(pose_tolerance, vel_tolerance)) {
+    RCLCPP_WARN(logger_, "Unable to retrieve goal checker's tolerances!");
   }
 
   // TODO: Check here if we have already reached the goal
@@ -293,7 +303,7 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
   // pass along drive commands
 
   if (!ok) {
-    RCLCPP_DEBUG(node_->get_logger(),
+    RCLCPP_DEBUG(node->get_logger(),
                  "The sfw planner failed to find a valid plan. This "
                  "means that the footprint of the robot was in collision "
                  "for all simulated trajectories.");
@@ -308,7 +318,7 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
   global_path_pub_->publish(transformed_plan);
   traj_pub_->publish(markers);
 
-  velStamp.header.stamp = node_->get_clock()->now();
+  velStamp.header.stamp = node->get_clock()->now();
   velStamp.header.frame_id = costmap_ros_->getGlobalFrameID();
   velStamp.twist = drive_cmds;
   return velStamp;

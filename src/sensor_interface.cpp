@@ -319,7 +319,7 @@ void SFMSensorInterface::publish_obstacle_points(
   m.color.b = 0.0;
   m.color.a = 1.0;
   m.id = 1000;
-  m.lifetime = rclcpp::Duration(0.3);
+  m.lifetime = rclcpp::Duration::from_seconds(0.3);
   // printf("Published Obstacles: ");
   for (utils::Vector2d p : points) {
     geometry_msgs::msg::Point pt;
