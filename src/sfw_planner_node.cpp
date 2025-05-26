@@ -45,14 +45,14 @@ Iter min_by(Iter begin, Iter end, Getter getCompareVal) {
 }
 
 void SFWPlannerNode::configure(
-    const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
-    const std::string name, const std::shared_ptr<tf2_ros::Buffer> &tf,
-    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> &costmap_ros) {
-
-  logger_ = parent->get_logger();
-  node_ = parent;
-  name_ = name;
-
+            const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
+            std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
+            const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) {
+  parent_ = parent;
+  auto node = parent_.lock();
+  node_ = node;
+  logger_ = node_->get_logger();
+  tf_ = tf;
   RCLCPP_INFO(logger_,
               "CONFIGURING CONTROLLER: %s OF TYPE "
               "social_force_window_planner::SFWPlannerNode",
@@ -60,23 +60,23 @@ void SFWPlannerNode::configure(
 
   costmap_ros_ = costmap_ros;
   costmap_ = costmap_ros_->getCostmap();
-  tf_ = tf;
 
   // sensor interface
-  sensor_iface_ = std::make_shared<SFMSensorInterface>(parent, tf, name);
+  sensor_iface_ = std::make_shared<SFMSensorInterface>(parent_, tf, name);
 
   global_path_pub_ =
-      parent->create_publisher<nav_msgs::msg::Path>("robot_global_plan", 1);
+      node_->create_publisher<nav_msgs::msg::Path>("robot_global_plan", 1);
 
   local_path_pub_ =
-      parent->create_publisher<nav_msgs::msg::Path>("robot_local_plan", 1);
+      node_->create_publisher<nav_msgs::msg::Path>("robot_local_plan", 1);
 
-  traj_pub_ = parent->create_publisher<visualization_msgs::msg::MarkerArray>(
+  traj_pub_ = node_->create_publisher<visualization_msgs::msg::MarkerArray>(
       "robot_local_trajectories", 1);
-
+  RCLCPP_INFO(logger_, "Creating SFWPlanner");
   sfw_planner_ =
       std::make_shared<SFWPlanner>(parent, name, sensor_iface_, *costmap_,
                                    costmap_ros_->getRobotFootprint());
+  RCLCPP_INFO(logger_, "SFWPlanner created");
 }
 
 void SFWPlannerNode::cleanup() {
@@ -218,8 +218,9 @@ bool SFWPlannerNode::transformPoint(
 }
 
 geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &pose,
-    const geometry_msgs::msg::Twist &speed) {
+            const geometry_msgs::msg::PoseStamped &pose,
+            const geometry_msgs::msg::Twist &speed,
+            nav2_core::GoalChecker * )  {
 
   // RCLCPP_INFO(logger_, "ComputeVelocityCommands called!!!!");
   geometry_msgs::msg::TwistStamped velStamp;
@@ -282,6 +283,7 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
       sfw_planner_->findBestAction(robot_pose, speed, drive_cmds); // robot_vel
 
   visualization_msgs::msg::MarkerArray markers = sfw_planner_->getMarkers();
+  nav_msgs::msg::Path trajectory_end_point = sfw_planner_->getTrajectoryEndPoint();
 
   // For timing uncomment
   // gettimeofday(&end, NULL);
@@ -299,6 +301,7 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
                  "for all simulated trajectories.");
     // publishPlan(transformed_plan, g_plan_pub_);
     global_path_pub_->publish(transformed_plan);
+    local_path_pub_->publish(trajectory_end_point);
     traj_pub_->publish(markers);
     return velStamp;
   }
@@ -306,6 +309,7 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
   // publish information to the visualizer
   // publishPlan(transformed_plan, g_plan_pub_);
   global_path_pub_->publish(transformed_plan);
+  local_path_pub_->publish(trajectory_end_point);
   traj_pub_->publish(markers);
 
   velStamp.header.stamp = node_->get_clock()->now();
@@ -313,6 +317,11 @@ geometry_msgs::msg::TwistStamped SFWPlannerNode::computeVelocityCommands(
   velStamp.twist = drive_cmds;
   return velStamp;
 }
+void SFWPlannerNode::setSpeedLimit(const double &speed_limit, const bool &percentage)
+{
+ RCLCPP_INFO(logger_, "Setting speed limit to %f with percentage %d", speed_limit, percentage);
+}
+
 
 bool SFWPlannerNode::isGoalReached() {
   // if (!isInitialized()) {

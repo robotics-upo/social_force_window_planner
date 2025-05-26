@@ -233,7 +233,7 @@ struct ControllerParams {
  */
 class SFWPlanner {
 public:
-  SFWPlanner(const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
+  SFWPlanner(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
              const std::string name,
              std::shared_ptr<SFMSensorInterface> &sensor_iface,
              const nav2_costmap_2d::Costmap2D &costmap,
@@ -272,6 +272,7 @@ public:
 
   bool isGoalReached();
   void resetGoal();
+  nav_msgs::msg::Path getTrajectoryEndPoint();
 
   /** @brief Set the footprint specification of the robot. */
   void setFootprint(std::vector<geometry_msgs::msg::Point> footprint) {
@@ -351,6 +352,7 @@ private:
   std::mutex configuration_mutex_;
 
   ControllerParams params_;
+  rclcpp_lifecycle::LifecycleNode::WeakPtr parent_;
 
   rclcpp_lifecycle::LifecycleNode::SharedPtr node_;
   std::string name_;
@@ -358,6 +360,7 @@ private:
   std::shared_ptr<SFMSensorInterface> sensor_iface_;
 
   WorldModel *world_model_;
+  rclcpp::Logger logger_{rclcpp::get_logger("SFWPlanner")};
 
   const nav2_costmap_2d::Costmap2D &costmap_;
 
@@ -366,7 +369,9 @@ private:
   std::vector<geometry_msgs::msg::PoseStamped>
       global_plan_; ///< @brief The global path for
                     /// the robot to follow
-
+  std::vector<geometry_msgs::msg::PoseStamped>
+      local_plan_; ///< @brief The local path for the
+                   /// robot to follow
   std::vector<double> linvels_;
   std::vector<double> angvels_;
   visualization_msgs::msg::MarkerArray markers_;

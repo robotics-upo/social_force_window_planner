@@ -1,4 +1,4 @@
-# social_force_window_planner (**ROS2 Foxy version**)
+# social_force_window_planner (**ROS2 Humble version**)
 A local controller based on Dinamic Window Approach (DWA) and Social Force Model (SFM) has been developed to command a differential robot in a socially-compliant way.
 
 This planner projects a set of possible trajectories in a small lookahead time (*sim_time* parameter). Then, the SFM is employed as a predictor of the future state of the surrounding people along the trajectories.

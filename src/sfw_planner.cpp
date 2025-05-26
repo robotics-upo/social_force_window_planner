@@ -25,16 +25,18 @@ using namespace nav2_costmap_2d;
 
 namespace social_force_window_planner {
 
-SFWPlanner::SFWPlanner(const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
+SFWPlanner::SFWPlanner(const rclcpp_lifecycle::LifecycleNode::WeakPtr &parent,
                        const std::string name,
                        std::shared_ptr<SFMSensorInterface> &sensor_iface,
                        const nav2_costmap_2d::Costmap2D &costmap,
                        std::vector<geometry_msgs::msg::Point> footprint_spec)
-    : node_(parent), name_(name), sensor_iface_(sensor_iface),
+    : parent_(parent), name_(name), sensor_iface_(sensor_iface),
       costmap_(costmap), footprint_spec_(footprint_spec) {
 
+  auto node = parent_.lock();
+  node_ = node;
   RCLCPP_INFO(node_->get_logger(), "SFWPlanner constructor!!!");
-  world_model_ = new CostmapModel(costmap);
+  world_model_ = new CostmapModel(costmap_);
 
   nav2_costmap_2d::calculateMinAndMaxDistances(
       footprint_spec, inscribed_radius_, circumscribed_radius_);
@@ -60,14 +62,16 @@ SFWPlanner::SFWPlanner(const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
 
   // read all the ros parameters
   params_.get(node_.get(), name_);
-
-  // Initialize set of linear vels [0, max_vel_x_]
+  // Initialize set of linear vels [min_vel_x, max_vel_x_]
   int n_linvels = 4;
-  double linvel_step = params_.max_vel_x_ / n_linvels;
+  double linvex;
+  double linvel_x_step = (params_.max_vel_x_- params_.min_vel_x_) / n_linvels;
   RCLCPP_INFO(node_->get_logger(), "Set of linear vels: [");
   for (int i = 0; i <= n_linvels; i++) {
-    linvels_.push_back(i * linvel_step);
-    RCLCPP_INFO(node_->get_logger(), "%.2f, ", (i * linvel_step));
+    linvex = params_.min_vel_x_ + i * linvel_x_step;
+    linvels_.push_back(linvex);
+    RCLCPP_INFO(node_->get_logger(), "%.2f, ", linvex);
+    RCLCPP_INFO(node_->get_logger(), "%.2f, ", (i * linvel_x_step));
   }
   RCLCPP_INFO(node_->get_logger(), "]\n");
   // Initialize set of angular vels [-max_vel_th, max_vel_th]
@@ -84,7 +88,7 @@ SFWPlanner::SFWPlanner(const rclcpp_lifecycle::LifecycleNode::SharedPtr &parent,
   }
   RCLCPP_INFO(node_->get_logger(), "]\n");
   initializeMarkers();
-}
+  }
 
 SFWPlanner::~SFWPlanner() {}
 
@@ -100,7 +104,7 @@ void SFWPlanner::initializeMarkers() {
       markers_.markers[counter].id = counter;
       markers_.markers[counter].type = 4;
       markers_.markers[counter].action = 0; // 0 - add/modify an object
-      markers_.markers[counter].lifetime = rclcpp::Duration(0.3);
+      markers_.markers[counter].lifetime = rclcpp::Duration::from_seconds(0.3);
       markers_.markers[counter].scale.x = 0.01;
       markers_.markers[counter].color.a = 1.0;
       markers_.markers[counter].pose.orientation.w = 1.0;
@@ -279,7 +283,7 @@ bool SFWPlanner::findBestAction(
   //            "findBestAction local goal x:%.2f, y:%.2f, h:%.2f", dx, dy, dt);
 
   // If we are approaching the goal (< dist_thres meters)
-  double dist_thres = 1.5;
+  double dist_thres = 0.2;
   if (dist_goal_sq < (dist_thres * dist_thres)) {
     vx = params_.min_vel_x_ + (params_.max_vel_x_ - params_.min_vel_x_) *
                                   (sqrt(dist_goal_sq) / dist_thres);
@@ -395,7 +399,7 @@ bool SFWPlanner::findBestAction(
 
         // prefer higher linear vel for equal-cost trajectories
         if (cost == best_cost && linvel < best_traj.xv_) {
-
+          
           i++;
           continue;
         }
@@ -432,6 +436,19 @@ bool SFWPlanner::findBestAction(
       vy = 0.0;
       vt = second_traj.thetav_;
     }*/
+    double x, y, th;
+    best_traj.getEndpoint(x, y, th);
+
+    local_plan_.clear();
+    geometry_msgs::msg::PoseStamped pose;
+    pose.pose.position.x = x;
+    pose.pose.position.y = y;
+    pose.pose.position.z = 0.0;
+    pose.pose.orientation.w = 0.0;
+    pose.pose.orientation.x = 0.0;
+    pose.pose.orientation.y = 0.0;
+    pose.pose.orientation.z = th;
+    local_plan_.push_back(pose);
     for (unsigned int a = 0; a < markers_.markers[best_i].points.size(); a++) {
       markers_.markers[best_i].points[a].z = 0.1;
     }
@@ -625,7 +642,7 @@ double SFWPlanner::scoreTrajectory(double x, double y, double theta, double vx,
         return -1.0;
       }
     }
-
+    
     social_work += computeSocialWork(myagents);
     // traj.cost_ += computeCost(myagents);
 
@@ -654,7 +671,7 @@ double SFWPlanner::scoreTrajectory(double x, double y, double theta, double vx,
   double vel_diff = fabs(params_.max_vel_x_ - vx_i) / params_.max_vel_x_;
   // average costmap cost
   costmap_cost = costmap_cost / num_steps;
-
+  
   // printf("costmap_cost: %.2f\n", costmap_cost);
 
   // DWA cost function:
@@ -889,6 +906,20 @@ bool SFWPlanner::updatePlan(
   start_t_ = tf2::getYaw(start_pose.pose.orientation);
 
   return true;
+}
+nav_msgs::msg::Path SFWPlanner::getTrajectoryEndPoint() {
+  nav_msgs::msg::Path path;
+  geometry_msgs::msg::PoseStamped pose;
+  path.header.stamp = node_->get_clock()->now();
+  path.header.frame_id = global_plan_[0].header.frame_id;
+  pose.header.stamp = node_->get_clock()->now();
+  pose.header.frame_id = global_plan_[0].header.frame_id;
+  pose.pose.position.x = local_plan_[0].pose.position.x;
+  pose.pose.position.y = local_plan_[0].pose.position.y;
+  pose.pose.position.z = 0.0;
+  pose.pose.orientation = local_plan_[0].pose.orientation;
+  path.poses.push_back(pose);
+  return path;
 }
 
 bool SFWPlanner::isGoalReached() {
